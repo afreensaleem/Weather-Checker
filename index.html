@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weather App with Default Icon</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #e0f7fa;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00796b;
+    }
+
+    select, button {
+      padding: 8px 12px;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+
+    #weather-container {
+      display: none;
+      margin-top: 20px;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    img {
+      width: 100px;
+    }
+
+    p {
+      margin: 5px 0;
+      font-size: 16px;
+    }
+
+    #weather-main {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Weather App</h1>
+
+  <!-- City Selector -->
+  <select id="city-select">
+    <option value=""></option>
+    <option value="new york">New York</option>
+    <option value="los angeles">Los Angeles</option>
+    <option value="chicago">Chicago</option>
+    <option value="paris">Paris</option>
+    <option value="tokyo">Tokyo</option>
+    <option value="london">London</option>
+  </select>
+
+  <!-- Fetch Weather Button -->
+  <button id="get-weather-btn">Get Weather</button>
+
+  <!-- Weather Display Container -->
+  <div id="weather-container">
+    <h2 id="location"></h2>
+    <img id="weather-icon" alt="Weather Icon" src="">
+    <p id="weather-main"></p>
+    <p>Main Temperature: <span id="main-temperature"></span> °C</p>
+    <p>Feels Like: <span id="feels-like"></span> °C</p>
+    <p>Humidity: <span id="humidity"></span> %</p>
+    <p>Wind Speed: <span id="wind"></span> m/s</p>
+    <p>Wind Gust: <span id="wind-gust"></span> m/s</p>
+  </div>
+
+  <script>
+    const button = document.getElementById("get-weather-btn");
+    const select = document.getElementById("city-select");
+    const container = document.getElementById("weather-container");
+
+    const DEFAULT_ICON = "https://via.placeholder.com/100?text=N/A";
+
+    // Fetch weather data
+    async function getWeather(city) {
+      try {
+        const response = await fetch(`https://weather-proxy.freecodecamp.rocks/api/city/${city}`);
+        if (!response.ok) throw new Error("Network response not ok");
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }
+
+    // Show weather data in UI
+    async function showWeather(city) {
+      try {
+        const data = await getWeather(city);
+
+        if (!data) {
+          alert("Something went wrong, please try again later.");
+          return;
+        }
+
+        container.style.display = "block";
+
+        document.getElementById("location").textContent = data.name ?? "N/A";
+        document.getElementById("weather-main").textContent = data.weather?.[0]?.main ?? "N/A";
+
+        // Weather icon with fallback
+        const iconCode = data.weather?.[0]?.icon;
+        const iconFile = iconCode.split("/").pop();
+        const iCode = iconFile.replace(".png","");
+        console.log(data.weather?.[0]?.icon);
+     console.log(iCode);
+        document.getElementById("weather-icon").src = iconCode
+          ? `https://openweathermap.org/img/wn/${iCode}@2x.png`
+          : DEFAULT_ICON;
+         
+
+        document.getElementById("main-temperature").textContent = data.main?.temp ?? "N/A";
+        document.getElementById("feels-like").textContent = data.main?.feels_like ?? "N/A";
+        document.getElementById("humidity").textContent = data.main?.humidity ?? "N/A";
+        document.getElementById("wind").textContent = data.wind?.speed ?? "N/A";
+        document.getElementById("wind-gust").textContent = data.wind?.gust ?? "N/A";
+
+      } catch (error) {
+        alert("Something went wrong, please try again later.");
+        // Always show placeholder icon if API fails completely
+        document.getElementById("weather-icon").src = DEFAULT_ICON;
+      }
+    }
+
+    // Button click
+    button.addEventListener("click", () => {
+      const city = select.value;
+      if (city === "") return; // do nothing if no city selected
+      showWeather(city);
+    });
+  </script>
+
+</body>
+</html>
